@@ -6,7 +6,7 @@ import datetime
 # Settings
 
 # tickers to fetch data for
-tickers = ['TWTR', 'GRPN', 'SPY', 'QQQ']
+tickers = ['TWTR', 'GRPN', 'SHLD', 'SPY', 'QQQ']
 
 # output file name
 outfile = 'long_puts.csv'
@@ -28,9 +28,11 @@ csv_cols = [
     'Expiry',
     'Symbol',
     'Bid',
+    'Ask',
     'Vol',
     'Open_Int',
     'IV',
+    'xBankrupcyReturn%',
 ]
 
 # CSV columns to sort by
@@ -50,8 +52,7 @@ def long_puts_csv_out(filename, df):
     filtered = df.loc[(df['Type'] == 'puts') & (df['xExpired'] is not True) & (
         df['Strike'] < df['Underlying_Price']) & (df[
             'xDaysUntilExpiration'] >= 14) & (df['Vol'] > 1) & (df[
-                'Open_Int'] > 10) & (df['xBreakEvenDrop%'] < 20) & (df[
-                    'xDaysUntilExpiration'] > 90)]
+                'Open_Int'] > 10) & (df['xDaysUntilExpiration'] > 90)]
 
     ret = filtered.sort_values(
         by=sort_cols, ascending=True).to_csv(
@@ -71,13 +72,17 @@ def long_puts_process_dataframe(df):
         lambda row: (row['Expiry'].to_pydatetime() - today).days, axis=1)
     df['xExpired'] = df.apply(
         lambda row: row['xDaysUntilExpiration'] <= 0, axis=1)
-    df['xOptionPrice'] = df.apply(lambda row: row['Ask'], axis=1)
+    df['xOptionPrice'] = df.apply(
+        lambda row: row['Ask'] if row['Ask'] > 0 else row['Last'], axis=1)
     df['xBreakEvenPrice'] = df.apply(
         lambda row: row['Strike'] - row['Ask'], axis=1)
     df['xBreakEvenDrop'] = df.apply(
         lambda row: row['Underlying_Price'] - row['xBreakEvenPrice'], axis=1)
     df['xBreakEvenDrop%'] = df.apply(
         lambda row: 100.0 * row['xBreakEvenDrop'] / row['Underlying_Price'],
+        axis=1)
+    df['xBankrupcyReturn%'] = df.apply(
+        lambda row: 100.0 * (row['Strike'] - row['xOptionPrice']) / row['xOptionPrice'],
         axis=1)
 
     return df
