@@ -17,7 +17,7 @@ days_to_cache = 1
 # CSV columns to export
 csv_cols = [
     'xBreakEvenDrop%',
-    'xOptionPrice',
+    'xPremium',
     'xDaysUntilExpiration',
     'xBreakEvenDrop',
     'xBreakEvenPrice',
@@ -29,6 +29,7 @@ csv_cols = [
     'Symbol',
     'Bid',
     'Ask',
+    'Last',
     'Vol',
     'Open_Int',
     'IV',
@@ -72,7 +73,9 @@ def long_puts_process_dataframe(df):
         lambda row: (row['Expiry'].to_pydatetime() - today).days, axis=1)
     df['xExpired'] = df.apply(
         lambda row: row['xDaysUntilExpiration'] <= 0, axis=1)
-    df['xOptionPrice'] = df.apply(
+    df['xDividend'] = df.apply(  # placeholder for dividend
+        lambda row: 0, axis=1)
+    df['xPremium'] = df.apply(
         lambda row: row['Ask'] if row['Ask'] > 0 else row['Last'], axis=1)
     df['xBreakEvenPrice'] = df.apply(
         lambda row: row['Strike'] - row['Ask'], axis=1)
@@ -82,7 +85,7 @@ def long_puts_process_dataframe(df):
         lambda row: 100.0 * row['xBreakEvenDrop'] / row['Underlying_Price'],
         axis=1)
     df['xBankrupcyReturn%'] = df.apply(
-        lambda row: 100.0 * (row['Strike'] - row['xOptionPrice']) / row['xOptionPrice'],
+        lambda row: 100.0 * (row['Strike'] - row['xPremium']) / row['xPremium'],
         axis=1)
 
     return df

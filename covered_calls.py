@@ -16,9 +16,9 @@ days_to_cache = 1
 
 # CSV columns to export
 csv_cols = [
-    'xProfitCurAnnual%',
+    'xStaticRetAnn%',
     'xInsurance%',
-    'xProfitMaxAnnual%',
+    'xIfCalledRetAnn%',
     'xDaysUntilExpiration',
     'Root',
     'Underlying_Price',
@@ -27,13 +27,15 @@ csv_cols = [
     'Expiry',
     'Symbol',
     'Bid',
+    'Ask',
+    'Last',
     'Vol',
     'Open_Int',
     'IV',
 ]
 
 # CSV columns to sort by
-sort_cols = ['xProfitCurAnnual%', 'xInsurance%', 'xProfitMaxAnnual%']
+sort_cols = ['xStaticRetAnn%', 'xInsurance%', 'xIfCalledRetAnn%']
 
 #####################################################################
 # Functions
@@ -69,25 +71,24 @@ def covered_call_process_dataframe(df):
         lambda row: (row['Expiry'].to_pydatetime() - today).days, axis=1)
     df['xExpired'] = df.apply(
         lambda row: row['xDaysUntilExpiration'] <= 0, axis=1)
+    df['xDividend'] = df.apply(  # TODO(IMPLEMENT): placeholder for dividend
+        lambda row: 0, axis=1)
+    df['xPremium'] = df.apply(
+        lambda row: row['Bid'] if row['Bid'] > 0 else row['Last'], axis=1)
     df['xInsurance%'] = df.apply(
-        lambda row: 100.0 * row['Bid'] / row['Underlying_Price'], axis=1)
-    df['xProfitCur'] = df.apply(lambda row: row['Bid'], axis=1)
-    df['xProfitCur%'] = df.apply(
-        lambda row: 100.0 * row['Bid'] / row['Underlying_Price'], axis=1)
-    df['xProfitCurAnnual%'] = df.apply(
-        lambda row: row['xProfitCur%'] * 365.0 / row['xDaysUntilExpiration'],
+        lambda row: 100.0 * row['xPremium'] / row['Underlying_Price'], axis=1)
+    df['xStaticRet%'] = df.apply(
+        lambda row: 100.0 * row['xPremium'] / (row['Underlying_Price'] - row['xPremium']),
         axis=1)
-    df['xProfitMax'] = df.apply(
-        lambda row: row['Bid'] + row['Strike'] - row['Underlying_Price'],
+    df['xStaticRetAnn%'] = df.apply(
+        lambda row: row['xStaticRet%'] * 365.0 / row['xDaysUntilExpiration'],
         axis=1)
-    df['xProfitMax%'] = df.apply(
-        lambda row: 100.0 * row['xProfitMax'] / row['Underlying_Price'],
+    df['xIfCalledRet%'] = df.apply(
+        lambda row: 100.0 * (row['xPremium'] + row['xDividend'] + row['Strike'] - row['Underlying_Price']) / (row['Underlying_Price'] - row['xPremium']),
         axis=1)
-    df['xProfitMaxAnnual%'] = df.apply(
-        lambda row: row['xProfitMax%'] * 365.0 / row['xDaysUntilExpiration'],
+    df['xIfCalledRetAnn%'] = df.apply(
+        lambda row: row['xIfCalledRet%'] * 365.0 / row['xDaysUntilExpiration'],
         axis=1)
-    df['xPriceLossAt'] = df.apply(
-        lambda row: row['Underlying_Price'] - row['Bid'], axis=1)
 
     return df
 
