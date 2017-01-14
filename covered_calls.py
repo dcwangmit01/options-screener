@@ -6,7 +6,7 @@ import datetime
 # Settings
 
 # tickers to fetch data for
-tickers = ['AAPL', 'GOOG', 'AMZN', 'MSFT', 'SPY', 'FB', 'QQQ']
+tickers = ['SPY', 'QQQ', 'AAPL', 'GOOG', 'AMZN', 'MSFT', 'FB', 'PSEC']
 
 # output file name
 outfile = 'covered_calls.csv'
@@ -81,13 +81,13 @@ def covered_call_process_dataframe(df):
         lambda row: 100.0 * row['xPremium'] / (row['Underlying_Price'] - row['xPremium']),
         axis=1)
     df['xStaticRetAnn%'] = df.apply(
-        lambda row: row['xStaticRet%'] * 365.0 / row['xDaysUntilExpiration'],
+        lambda row: 0 if row['xDaysUntilExpiration'] <= 0 else (row['xStaticRet%'] * 365.0 / row['xDaysUntilExpiration']),
         axis=1)
     df['xIfCalledRet%'] = df.apply(
         lambda row: 100.0 * (row['xPremium'] + row['xDividend'] + row['Strike'] - row['Underlying_Price']) / (row['Underlying_Price'] - row['xPremium']),
         axis=1)
     df['xIfCalledRetAnn%'] = df.apply(
-        lambda row: row['xIfCalledRet%'] * 365.0 / row['xDaysUntilExpiration'],
+        lambda row: 0 if row['xDaysUntilExpiration'] <= 0 else row['xIfCalledRet%'] * 365.0 / row['xDaysUntilExpiration'],
         axis=1)
 
     return df
@@ -112,7 +112,8 @@ for ticker in tickers:
 
     # fetch all data
     df = option.get_all_data()
-
+    import ipdb
+    ipdb.set_trace()
     # covered_call_csv_out
     df = covered_call_process_dataframe(df)
 

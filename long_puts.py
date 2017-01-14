@@ -6,7 +6,9 @@ import datetime
 # Settings
 
 # tickers to fetch data for
-tickers = ['TWTR', 'GRPN', 'SHLD', 'SPY', 'QQQ']
+tickers = [
+    'SPY', 'QQQ', 'TWTR', 'GRPN', 'SHLD', 'AAPL', 'GOOG', 'AMZN', 'MSFT', 'FB'
+]
 
 # output file name
 outfile = 'long_puts.csv'
@@ -85,7 +87,7 @@ def long_puts_process_dataframe(df):
         lambda row: 100.0 * row['xBreakEvenDrop'] / row['Underlying_Price'],
         axis=1)
     df['xBankrupcyReturn%'] = df.apply(
-        lambda row: 100.0 * (row['Strike'] - row['xPremium']) / row['xPremium'],
+        lambda row: 0 if row['xPremium'] == 0 else 100.0 * (row['Strike'] - row['xPremium']) / row['xPremium'],
         axis=1)
 
     return df
