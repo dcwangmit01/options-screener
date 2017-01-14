@@ -1,2 +1,10 @@
 *.csv
+*.egg-info
+*.pyc
 *.sqlite
+.cache/
+.coverage
+.eggs/
+.tox/
+.venv
+dist/
