@@ -27,5 +27,6 @@ dist: clean
 clean:
 	find * -type f -name *.pyc | xargs rm -f
 	find * -type f -name *~ |xargs rm -f
+	find * -type d -name __pycache__ |xargs rm -rf
 	rm -rf *.egg-info
 	rm -rf dist/

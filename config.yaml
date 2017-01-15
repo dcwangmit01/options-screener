@@ -1,0 +1,22 @@
+
+options:
+  long_puts:
+  - SPY
+  - QQQ
+  - TWTR
+  - GRPN
+  - SHLD
+  - AAPL
+  - GOOG
+  - AMZN
+  - MSFT
+  - FB
+  covered_calls:
+  - SPY
+  - QQQ
+  - AAPL
+  - AMZN
+  - GOOG
+  - MSFT
+  - FB
+  - PSEC
