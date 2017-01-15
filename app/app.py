@@ -1,8 +1,6 @@
-import click
 import logging
 import os
 import re
-import sys
 
 from app import utils
 
@@ -18,10 +16,7 @@ class App(object):
         # Return a singleton
         self.__dict__ = App._singleton
 
-    def get_config_dict(self,
-                        ctx,
-                        list_of_files=['config.yaml'],
-                        initial_dict={}):
+    def get_config_dict(self, ctx, list_of_files=[], initial_dict={}):
         # Manually cache, since memoization doesn't work with dict values
         if App._jinja_dict is not None:
             return App._jinja_dict

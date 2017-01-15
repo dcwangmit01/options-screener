@@ -1,15 +1,19 @@
 from pandas_datareader.data import Options
 import requests_cache
 import datetime
+import click
+import logging
+
+from app import app
+from app import cli as app_cli
+
+log = logging.getLogger(__name__)
+
+app = app.App()
+today = datetime.datetime.today()
 
 #####################################################################
 # Settings
-
-# tickers to fetch data for
-tickers = ['SPY', 'QQQ', 'AAPL', 'GOOG', 'AMZN', 'MSFT', 'FB', 'PSEC']
-
-# output file name
-outfile = 'covered_calls.csv'
 
 # cache settings
 days_to_cache = 1
@@ -38,10 +42,61 @@ csv_cols = [
 sort_cols = ['xStaticRetAnn%', 'xInsurance%', 'xIfCalledRetAnn%']
 
 #####################################################################
+# Click Code
+
+
+@click.group()
+def cli():
+    """Subcommand for covered calls"""
+
+    pass
+
+
+@cli.command()
+@click.argument('config_yaml')
+@click.argument('output_csv')
+@app_cli.pass_context
+def run(ctx, config_yaml, output_csv):
+    """This command loads config.yaml and the current ENV-ironment,
+    creates a single merged dict, and prints to stdout.
+    """
+
+    # read the configuration file
+    c = app.get_config_dict(ctx, [config_yaml])
+
+    # use cache to reduce web traffic
+    session = requests_cache.CachedSession(
+        cache_name='cache',
+        backend='sqlite',
+        expire_after=datetime.timedelta(days=days_to_cache))
+
+    # all data will also be combined into one CSV
+    all_df = None
+
+    for ticker in c['config']['options']['covered_calls']:
+        option = Options(ticker, 'yahoo', session=session)
+
+        # fetch all data
+        df = option.get_all_data()
+
+        # process the data
+        df = covered_calls_process_dataframe(df)
+
+        # ensure the all_df (contains all data from all tickers)
+        if all_df is None:
+            all_df = df.copy(deep=True)
+        else:
+            all_df = all_df.append(df)
+
+        # output the all_df, which contains all of the tickers
+        covered_calls_csv_out(output_csv, all_df)
+
+
+#####################################################################
 # Functions
 
 
-def covered_call_csv_out(filename, df):
+def covered_calls_csv_out(filename, df):
     # calls
     # not expired
     # out of the money
@@ -59,7 +114,7 @@ def covered_call_csv_out(filename, df):
     return ret
 
 
-def covered_call_process_dataframe(df):
+def covered_calls_process_dataframe(df):
     # reset_index()
     #   copies multi-index values into columns
     #   sets index to single ordinal integer
@@ -91,37 +146,3 @@ def covered_call_process_dataframe(df):
         axis=1)
 
     return df
-
-
-#####################################################################
-# Main
-
-# use cache to reduce web traffic
-session = requests_cache.CachedSession(
-    cache_name='cache',
-    backend='sqlite',
-    expire_after=datetime.timedelta(days=days_to_cache))
-
-today = datetime.datetime.today()
-
-# all data will also be combined into one CSV
-all_df = None
-
-for ticker in tickers:
-    option = Options(ticker, 'yahoo', session=session)
-
-    # fetch all data
-    df = option.get_all_data()
-    import ipdb
-    ipdb.set_trace()
-    # covered_call_csv_out
-    df = covered_call_process_dataframe(df)
-
-    # ensure the all_df (contains all data from all tickers)
-    if all_df is None:
-        all_df = df.copy(deep=True)
-    else:
-        all_df = all_df.append(df)
-
-# output the all_df, which contains all of the tickers
-covered_call_csv_out(outfile, all_df)

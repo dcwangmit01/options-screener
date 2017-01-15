@@ -4,8 +4,6 @@ import sys
 import re
 import json
 
-from utils import JsonUtils
-
 from selenium import webdriver
 import selenium.webdriver.chrome.service as service
 from selenium.webdriver.support.ui import Select

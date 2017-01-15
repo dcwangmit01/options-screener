@@ -1,7 +1,5 @@
 import click
 import logging
-import os
-import sys
 
 from app import app
 from app import cli as app_cli
@@ -26,5 +24,5 @@ def print(ctx):
     creates a single merged dict, and prints to stdout.
     """
 
-    d = app.get_config_dict(ctx)
-    click.echo(utils.YamlUtils.yaml_dict_to_string(d))
+    c = app.get_config_dict(ctx)
+    click.echo(utils.YamlUtils.yaml_dict_to_string(c))

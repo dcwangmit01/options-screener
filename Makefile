@@ -24,9 +24,14 @@ test_fixtures:
 dist: clean
 	(cd $(BASE) && $(PYTHON) setup.py sdist)
 
+run:
+	options coveredcalls run config.yaml coveredcalls.csv
+	options longputs run config.yaml longputs.csv
+
 clean:
 	find * -type f -name *.pyc | xargs rm -f
 	find * -type f -name *~ |xargs rm -f
 	find * -type d -name __pycache__ |xargs rm -rf
 	rm -rf *.egg-info
 	rm -rf dist/
+	rm -f *.csv
