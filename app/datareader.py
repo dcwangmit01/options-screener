@@ -12,6 +12,7 @@ from selenium.webdriver.support.ui import Select
 
 from pandas_datareader.data import Options
 import requests_cache
+import requests
 
 #####################################################################
 # Settings
@@ -32,25 +33,73 @@ common_columns = [
     'oi', 'root', 'nonstandard', 'underlying', 'underlyingprice', 'quotetime'
 ]
 
-# curl 'http://www.google.com/finance/info?infotype=infoquoteall&q=GOOG'
 
-
-class SchwabDatareader(object):
-    def schwab_stock_info(self, page_source):
-        stock_dict = json.loads(self.striphtml(page_source))
-        soup = BeautifulSoup(stock_dict['Content'])
-        print(soup.prettify())
-
-    def yahoo_dataframe(self, ticker):
-
+class Datareader(object):
+    def __init__(self):
         # Create the requests cache
-        session = requests_cache.CachedSession(
+        self.session = requests_cache.CachedSession(
             cache_name='cache',
             backend='sqlite',
             expire_after=seconds_to_cache)
 
-        option = Options(ticker, 'yahoo', session=session)
+    def yahoo_stock_info(self, ticker):
+        r = requests.get('http://finance.yahoo.com/quote/AAPL?p=' + ticker)
+        soup = BeautifulSoup(r.text)
+        tables = soup.find_all('table')[1:]  # drop the first useless table
+
+        # curl 'https://query2.finance.yahoo.com/v10/finance/quoteSummary/AAPL?modules=summaryProfile%2CfinancialData%2CrecommendationTrend%2CupgradeDowngradeHistory%2Cearnings%2CdefaultKeyStatistics%2CcalendarEvents' | python -m json.tool > tmp2.txt
+        print(soup.prettify())
+        import pytest
+        pytest.set_trace()
+
+    def google_stock_info(self, ticker):
+        """
+        USE THE YAHOO ONE, which is more descriptive
+         {'id': '22144', 't': 'AAPL', 'e': 'NASDAQ', 'l': '119.97',
+            'l_fix': '119.97', 'l_cur': '119.98', 's': '2', 'ltt': '4:00PM
+            EST', 'lt': 'Jan 17, 4:00PM EST', 'lt_dts':
+            '2017-01-17T16:00:02Z', 'c': '+0.93', 'c_fix': '0.93', 'cp':
+            '0.79', 'cp_fix': '0.79', 'ccol': 'chg', 'pcls_fix': '119.04',
+            'el': '119.96', 'el_fix': '119.96', 'el_cur': '119.96', 'elt':
+            'Jan 17, 7:59PM EST', 'ec': '-0.01', 'ec_fix': '-0.01', 'ecp':
+            '-0.01', 'ecp_fix': '-0.01', 'eccol': 'chr', 'div': '0.57',
+            'yld': '1.90', 'eo': '', 'delay': '', 'op': '118.34', 'hi':
+            '120.24', 'lo': '118.22', 'vo': '-', 'avvo': '-', 'hi52':
+            '120.24', 'lo52': '89.47', 'mc': '629.70B', 'pe': '14.50',
+            'fwpe': '', 'beta': '1.32', 'eps': '8.28', 'shares': '5.33B',
+            'inst_own': '60%', 'name': 'Apple Inc.', 'type': 'Company'}
+        """
+        r = requests.get(
+            'http://www.google.com/finance/info?infotype=infoquoteall&q=' +
+            ticker)
+        stock_dict = json.loads(r.text[3:])[0]
+
+        renames = {
+            't': 'ticker',
+            'e': 'exchange',
+            'l': 'last',
+            'c': 'change',
+            'div': 'div',
+            'yld': 'yield',
+            'hi': 'hiday',
+            'lo': 'loday',
+            'hi52': 'hi52',
+            'lo52': 'lo52',
+            'pe': 'pe',
+            'beta': 'beta',
+            'inst_own': 'inst_own',
+            'name': 'name',
+            'type': 'company',
+            'mc': 'market_cap',
+        }
+
+        # rename: mydict['ticker'] = mydict.pop('t')
+        return (stock_dict)
+
+    def yahoo_options_dataframe(self, ticker):
+
         # fetch all data
+        option = Options(ticker, 'yahoo', session=self.session)
         df = option.get_all_data()
 
         # reset_index()
@@ -58,6 +107,7 @@ class SchwabDatareader(object):
         #   sets index to single ordinal integer
         df.reset_index(inplace=True)
 
+        # rename a bunch of the columns
         df.rename(
             index=str,
             inplace=True,
@@ -79,17 +129,19 @@ class SchwabDatareader(object):
                 'Quote_Time': 'quotetime'
             })
 
+        # delete unnecessary columns
         df.drop('PctChg', axis=1, inplace=True)
         df.drop('IV', axis=1, inplace=True)
         df.drop('Last_Trade_Date', axis=1, inplace=True)
         df.drop('JSON', axis=1, inplace=True)
-        import pytest
-        pytest.set_trace()
+
+        # normalize values for type column
         df['type'] = df.apply(
             lambda row: 'call' if row['type'] == 'calls' else 'put', axis=1)
+
         return df
 
-    def schwab_dataframe(self, ticker):
+    def schwab_options_dataframe(self, ticker):
         schwab = SchwabBrowser.Singleton()
         schwab.start()
         schwab.login()
