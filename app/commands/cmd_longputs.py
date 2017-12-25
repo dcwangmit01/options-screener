@@ -20,6 +20,7 @@ seconds_to_cache = 60 * 30  # 30 minutes
 
 # CSV columns to export
 csv_cols = [
+    'xBreakEvenDrop%PerDayUntilExpiration',
     'xBreakEvenDrop%',
     'xPremium',
     'xDaysUntilExpiration',
@@ -41,7 +42,7 @@ csv_cols = [
 ]
 
 # CSV columns to sort by
-sort_cols = ['xDaysUntilExpiration', 'xBreakEvenDrop%']
+sort_cols = ['xBreakEvenDrop%PerDayUntilExpiration', 'xDaysUntilExpiration', 'xBreakEvenDrop%']
 
 #####################################################################
 # Click Code
@@ -138,6 +139,9 @@ def long_puts_process_dataframe(df):
         lambda row: 0 + row['Underlying_Price'] - row['xBreakEvenPrice'], axis=1)
     df['xBreakEvenDrop%'] = df.apply(
         lambda row: 100.0 * row['xBreakEvenDrop'] / row['Underlying_Price'],
+        axis=1)
+    df['xBreakEvenDrop%PerDayUntilExpiration'] = df.apply(
+        lambda row: 100.0 * row['xBreakEvenDrop%'] / row['xDaysUntilExpiration'],
         axis=1)
     df['xBankrupcyReturn%'] = df.apply(
         lambda row: 0 if row['xPremium'] == 0 else 100.0 * (row['Strike'] - row['xPremium']) / row['xPremium'],

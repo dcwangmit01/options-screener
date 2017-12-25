@@ -20,6 +20,7 @@ seconds_to_cache = 60 * 30  # 30 minutes
 
 # CSV columns to export
 csv_cols = [
+    'xBreakEvenRise%PerDayUntilExpiration',
     'xBreakEvenRise%',
     'xPremium',
     'xDaysUntilExpiration',
@@ -40,7 +41,7 @@ csv_cols = [
 ]
 
 # CSV columns to sort by
-sort_cols = ['xDaysUntilExpiration', 'xBreakEvenRise%']
+sort_cols = ['xBreakEvenRise%PerDayUntilExpiration', 'xDaysUntilExpiration', 'xBreakEvenRise%']
 
 #####################################################################
 # Click Code
@@ -137,6 +138,9 @@ def long_calls_process_dataframe(df):
         lambda row: 0 - row['Underlying_Price'] + row['xBreakEvenPrice'], axis=1)
     df['xBreakEvenRise%'] = df.apply(
         lambda row: 100.0 * row['xBreakEvenRise'] / row['Underlying_Price'],
+        axis=1)
+    df['xBreakEvenRise%PerDayUntilExpiration'] = df.apply(
+        lambda row: 100.0 * row['xBreakEvenRise%'] / row['xDaysUntilExpiration'],
         axis=1)
 
     return df
