@@ -27,6 +27,7 @@ dist: clean
 run:
 	options coveredcalls run config.yaml coveredcalls.csv
 	options longputs run config.yaml longputs.csv
+	options longcalls run config.yaml longcalls.csv
 
 clean:
 	find * -type f -name *.pyc | xargs rm -f

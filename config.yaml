@@ -20,3 +20,6 @@ options:
   - MSFT
   - FB
   - PSEC
+  - PCG
+  long_calls:
+  - PCG
