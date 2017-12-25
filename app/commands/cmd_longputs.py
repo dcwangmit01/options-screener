@@ -16,7 +16,7 @@ today = datetime.datetime.today()
 # Settings
 
 # cache settings
-days_to_cache = 1
+seconds_to_cache = 60 * 30  # 30 minutes
 
 # CSV columns to export
 csv_cols = [
@@ -70,7 +70,7 @@ def run(ctx, config_yaml, output_csv):
     session = requests_cache.CachedSession(
         cache_name='cache',
         backend='sqlite',
-        expire_after=datetime.timedelta(days=days_to_cache))
+        expire_after=seconds_to_cache)
 
     # all data will also be combined into one CSV
     all_df = None
@@ -135,7 +135,7 @@ def long_puts_process_dataframe(df):
     df['xBreakEvenPrice'] = df.apply(
         lambda row: row['Strike'] - row['Ask'], axis=1)
     df['xBreakEvenDrop'] = df.apply(
-        lambda row: row['Underlying_Price'] - row['xBreakEvenPrice'], axis=1)
+        lambda row: 0 + row['Underlying_Price'] - row['xBreakEvenPrice'], axis=1)
     df['xBreakEvenDrop%'] = df.apply(
         lambda row: 100.0 * row['xBreakEvenDrop'] / row['Underlying_Price'],
         axis=1)
