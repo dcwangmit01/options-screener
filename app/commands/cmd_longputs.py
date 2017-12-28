@@ -109,7 +109,7 @@ def long_puts_csv_out(filename, df):
     filtered = df.loc[(df['Type'] == 'put') & (df['xExpired'] is not True) & (
         df['Strike'] < df['Underlying_Price']) & (df[
             'xDaysUntilExpiration'] >= 14) & (df['Vol'] > 1) & (df[
-                'Open_Int'] > 10) & (df['xDaysUntilExpiration'] > 90)]
+                'Open_Int'] > 10) & (df['xDaysUntilExpiration'] > 30)]
 
     ret = filtered.sort_values(
         by=sort_cols, ascending=True).to_csv(
@@ -141,7 +141,7 @@ def long_puts_process_dataframe(df):
         lambda row: 100.0 * row['xBreakEvenDrop'] / row['Underlying_Price'],
         axis=1)
     df['xBreakEvenDrop%PerDayUntilExpiration'] = df.apply(
-        lambda row: 100.0 * row['xBreakEvenDrop%'] / row['xDaysUntilExpiration'],
+        lambda row: 0 if row['xDaysUntilExpiration'] == 0 else row['xBreakEvenDrop%'] / row['xDaysUntilExpiration'],
         axis=1)
     df['xBankrupcyReturn%'] = df.apply(
         lambda row: 0 if row['xPremium'] == 0 else 100.0 * (row['Strike'] - row['xPremium']) / row['xPremium'],

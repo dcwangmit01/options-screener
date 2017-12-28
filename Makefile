@@ -1,5 +1,7 @@
 PYTHON ?= python
 
+DATE:=$(shell date "+%Y%m%d")
+
 venv:
 	if [ ! -d .venv ] ; then \
 	  virtualenv -p python3 .venv; \
@@ -25,9 +27,9 @@ dist: clean
 	(cd $(BASE) && $(PYTHON) setup.py sdist)
 
 run:
-	options coveredcalls run config.yaml coveredcalls.csv
-	options longputs run config.yaml longputs.csv
-	options longcalls run config.yaml longcalls.csv
+	options coveredcalls run config.yaml $(DATE)_coveredcalls.csv
+	options longputs run config.yaml $(DATE)_longputs.csv
+	options longcalls run config.yaml $(DATE)_longcalls.csv
 
 clean:
 	find * -type f -name *.pyc | xargs rm -f

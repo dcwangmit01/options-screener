@@ -16,7 +16,7 @@ today = datetime.datetime.today()
 # Settings
 
 # cache settings
-seconds_to_cache = 60 * 30  # 30 minutes
+seconds_to_cache = 60 # * 30  # 30 minutes
 
 # CSV columns to export
 csv_cols = [
@@ -108,7 +108,7 @@ def long_calls_csv_out(filename, df):
     filtered = df.loc[(df['Type'] == 'call') & (df['xExpired'] is not True) & (
         df['Strike'] > df['Underlying_Price']) & (df[
             'xDaysUntilExpiration'] >= 14) & (df['Vol'] > 1) & (df[
-                'Open_Int'] > 10) & (df['xDaysUntilExpiration'] > 90)]
+                'Open_Int'] > 10) & (df['xDaysUntilExpiration'] > 4)]
 
     ret = filtered.sort_values(
         by=sort_cols, ascending=True).to_csv(
@@ -140,7 +140,7 @@ def long_calls_process_dataframe(df):
         lambda row: 100.0 * row['xBreakEvenRise'] / row['Underlying_Price'],
         axis=1)
     df['xBreakEvenRise%PerDayUntilExpiration'] = df.apply(
-        lambda row: 100.0 * row['xBreakEvenRise%'] / row['xDaysUntilExpiration'],
+        lambda row: 0 if row['xDaysUntilExpiration'] == 0 else row['xBreakEvenRise%'] / row['xDaysUntilExpiration'],
         axis=1)
 
     return df

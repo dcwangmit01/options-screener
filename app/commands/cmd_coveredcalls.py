@@ -103,10 +103,10 @@ def covered_calls_csv_out(filename, df):
     # greater than 2 weeks from expiration
     # volume greater than 1
     # open interest greater than 10
-    filtered = df.loc[(df['Type'] == 'call') & (df[
-        'xExpired'] is not True) & (df['Strike'] > df['Underlying_Price']) & (
-            df['xDaysUntilExpiration'] >= 14) & (df['Vol'] > 1) & (df[
-                'Open_Int'] > 10)]
+    filtered = df.loc[(df['Type'] == 'call')
+            & (df['xExpired'] is not True) & (df['Strike'] > df['Underlying_Price'])
+            & (df['xDaysUntilExpiration'] >= 14) & (df['Vol'] > 1)
+            & (df['Open_Int'] > 10) & (df['Bid'] > 0.25)]
 
     ret = filtered.sort_values(
         by=sort_cols, ascending=False).to_csv(

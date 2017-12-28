@@ -11,7 +11,10 @@ options:
   - AMZN
   - MSFT
   - FB
+  - PCG
   covered_calls:
+  - BRKB
+  - PCG
   - SPY
   - QQQ
   - AAPL
@@ -20,6 +23,9 @@ options:
   - MSFT
   - FB
   - PSEC
-  - PCG
   long_calls:
   - PCG
+  - AAPL
+  - QQQ
+  - SPY
+
