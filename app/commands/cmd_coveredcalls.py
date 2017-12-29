@@ -135,8 +135,6 @@ def covered_calls_process_dataframe(df):
         lambda row: 0, axis=1)
     df['xPremium'] = df.apply(
         lambda row: row['Bid'] if row['Bid'] > 0 else row['Last'], axis=1)
-    df['xInsurance%'] = df.apply(
-        lambda row: 100.0 * row['xPremium'] / row['Underlying_Price'], axis=1)
 
     def static_return(row):
         if row['Underlying_Price'] <= row['Strike']:
@@ -145,6 +143,8 @@ def covered_calls_process_dataframe(df):
         else:
             # in the money
             return 100.0 * (row['xPremium'] + row['Strike'] - row['Underlying_Price']) / row['Underlying_Price']
+
+    df['xInsurance%'] = df.apply(static_return, axis=1)
     df['xStaticRet%'] = df.apply(static_return, axis=1)
     df['xStaticRetAnn%'] = df.apply(
         lambda row: 0 if row['xDaysUntilExpiration'] <= 0 else (row['xStaticRet%'] * 365.0 / row['xDaysUntilExpiration']),
