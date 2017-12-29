@@ -6,13 +6,8 @@ options:
   - TWTR
   - GRPN
   - SHLD
-  - AAPL
-  - GOOG
-  - AMZN
-  - MSFT
-  - FB
-  - PCG
   covered_calls:
+  - GE
   - BRKB
   - PCG
   - SPY
