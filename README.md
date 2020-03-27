@@ -3,8 +3,7 @@
 
 ```
 # Install
-make venv
-source .venv/bin/activate
+pipenv shell
 make install
 
 # generate the CSV files

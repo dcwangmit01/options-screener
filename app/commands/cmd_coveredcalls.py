@@ -21,8 +21,10 @@ seconds_to_cache = 60 * 30  # 30 minutes
 # CSV columns to export
 csv_cols = [
     'xStaticRetAnn%',
-    'xInsurance%',
     'xAssignedRetAnn%',
+    'xInTheMoney%',
+    'xStaticRet%',
+    'xStaticRet$',
     'xDaysUntilExpiration',
     'Root',
     'Underlying_Price',
@@ -39,7 +41,7 @@ csv_cols = [
 ]
 
 # CSV columns to sort by
-sort_cols = ['xStaticRetAnn%', 'xInsurance%', 'xAssignedRetAnn%']
+sort_cols = ['xStaticRetAnn%', 'xStaticRet%', 'xAssignedRetAnn%']
 
 #####################################################################
 # Click Code
@@ -106,10 +108,10 @@ def covered_calls_csv_out(filename, df):
     filtered = df.loc[ True
         & (df['Type'] == 'call')
         & (df['xExpired'] is not True)
-        & (df['xDaysUntilExpiration'] >= 7)
+        & (df['xDaysUntilExpiration'] >= 1)
         # & (df['Strike'] > df['Underlying_Price'])  # Uncomment to only show out of the money
         & (df['Vol'] > 1)
-        & (df['Open_Int'] > 10)
+        & (df['Open_Int'] > 20)
         & (df['Bid'] > 0.25)
     ]
 
@@ -135,17 +137,22 @@ def covered_calls_process_dataframe(df):
         lambda row: 0, axis=1)
     df['xPremium'] = df.apply(
         lambda row: row['Bid'] if row['Bid'] > 0 else row['Last'], axis=1)
+    df['xInTheMoney%'] = df.apply(
+        lambda row: 0 if row['Underlying_Price'] <= 0 else (100.0 * (row['Underlying_Price'] - row['Strike'])  / row['Underlying_Price']),
+        axis=1)
 
-    def static_return(row):
+    def static_return_dollars(row):
         if row['Underlying_Price'] <= row['Strike']:
             # out of the money or at the money
-            return 100.0 * row['xPremium'] / row['Underlying_Price']
+            return row['xPremium']
         else:
             # in the money
-            return 100.0 * (row['xPremium'] + row['Strike'] - row['Underlying_Price']) / row['Underlying_Price']
+            return row['xPremium'] + row['Strike'] - row['Underlying_Price']
 
-    df['xInsurance%'] = df.apply(static_return, axis=1)
-    df['xStaticRet%'] = df.apply(static_return, axis=1)
+    df['xStaticRet$'] = df.apply(static_return_dollars, axis=1)
+    df['xStaticRet%'] = df.apply(
+        lambda row: 100.0 * row['xStaticRet$'] / row['Underlying_Price'],
+        axis=1)
     df['xStaticRetAnn%'] = df.apply(
         lambda row: 0 if row['xDaysUntilExpiration'] <= 0 else (row['xStaticRet%'] * 365.0 / row['xDaysUntilExpiration']),
         axis=1)

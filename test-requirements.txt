@@ -1,9 +1,0 @@
-coverage
-flake8
-mock
-pyOpenSSL
-pytest
-pytest-cov
-pyyaml
-sh
-yapf

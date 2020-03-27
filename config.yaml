@@ -6,21 +6,24 @@ options:
   - TWTR
   - GRPN
   - SHLD
+  - AAPL
   covered_calls:
-  - GE
-  - BRKB
-  - PCG
   - SPY
   - QQQ
   - AAPL
   - AMZN
   - GOOG
-  - MSFT
   - FB
+  - MSFT
+  - CSCO
+  - BRKB
+  - PCG
+  - GE
   - PSEC
   long_calls:
   - PCG
   - AAPL
   - QQQ
   - SPY
+  - NFLX
 
