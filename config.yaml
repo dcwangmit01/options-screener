@@ -9,17 +9,17 @@ options:
   - AAPL
   covered_calls:
   - SPY
-  - QQQ
-  - AAPL
-  - AMZN
-  - GOOG
-  - FB
-  - MSFT
-  - CSCO
-  - BRKB
-  - PCG
-  - GE
-  - PSEC
+#  - QQQ
+#  - AAPL
+#  - AMZN
+#  - GOOG
+#  - FB
+#  - MSFT
+#  - CSCO
+#  - BRKB
+#  - PCG
+#  - GE
+#  - PSEC
   long_calls:
   - PCG
   - AAPL

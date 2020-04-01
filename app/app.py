@@ -33,13 +33,10 @@ class App(object):
 
         # Add the config files as part of the dict
         for filename in list_of_files:
-            m = re.match("^(.*)\.yaml$", filename)
-            assert m is not None, (
-                "Unable to parse config base name from file {}".format(
-                    filename))
+            m = re.match(r"^(.*)\.yaml$", filename)
+            assert m is not None, ("Unable to parse config base name from file {}".format(filename))
             key = m.group(1)
-            d[key] = utils.YamlUtils.yaml_dict_from_file(
-                os.path.join(ctx.home, filename))
+            d[key] = utils.YamlUtils.yaml_dict_from_file(os.path.join(ctx.home, filename))
 
         # Render values containing nested jinja variables
         r = utils.JinjaUtils.dict_self_render(d)

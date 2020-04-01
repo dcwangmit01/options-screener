@@ -56,8 +56,7 @@ class TestHelper():
     @staticmethod
     def _create_test_dir():
         dir_prefix = os.path.join(
-            "/tmp", 'app-tests_' + datetime.datetime.fromtimestamp(time.time(
-            )).strftime('%Y%m%d%H%M%S') + "_")
+            "/tmp", 'app-tests_' + datetime.datetime.fromtimestamp(time.time()).strftime('%Y%m%d%H%M%S') + "_")
         tmp_dir_path = tempfile.mkdtemp(prefix=dir_prefix)
         return tmp_dir_path
 
@@ -78,9 +77,7 @@ class TestExecUtils(TestHelper):
 class TestFileUtils(TestHelper):
     def test_write_and_read_file(self):
         write_content = "Hello_world\n"
-        filename = os.path.join(
-            TestHelper.get_test_dir(),
-            self.__class__.__name__ + "_test_write_and_read_file.txt")
+        filename = os.path.join(TestHelper.get_test_dir(), self.__class__.__name__ + "_test_write_and_read_file.txt")
         utils.FileUtils.write_string_to_file(write_content, filename)
         read_content = utils.FileUtils.read_string_from_file(filename)
         assert write_content == read_content
@@ -119,14 +116,14 @@ class TestJinjaUtils(TestHelper):
             assert e is not None
 
     def test_jinja_keyword_gen_names(self):
-        l = utils.JinjaUtils._jinja_keyword_gen_names('prefix', 1)
-        assert len(l) == 1
-        assert 'prefix' in l
+        l1 = utils.JinjaUtils._jinja_keyword_gen_names('prefix', 1)
+        assert len(l1) == 1
+        assert 'prefix' in l1
 
-        l = utils.JinjaUtils._jinja_keyword_gen_names('prefix', 2)
-        assert len(l) == 2
-        assert 'prefix-0001' in l
-        assert 'prefix-0002' in l
+        l2 = utils.JinjaUtils._jinja_keyword_gen_names('prefix', 2)
+        assert len(l2) == 2
+        assert 'prefix-0001' in l2
+        assert 'prefix-0002' in l2
 
     def test_mkpass(self):
         assert len(utils.JinjaUtils.mkpass(length=99)) == 99
@@ -134,12 +131,11 @@ class TestJinjaUtils(TestHelper):
     def test_keygen(self):
         comment = 'Hello how are you I\'m a turtle'
         try:
-            priv, pub = utils.JinjaUtils.keygen(
-                bits=1024, keytype='rsa', comment=comment)
+            priv, pub = utils.JinjaUtils.keygen(bits=1024, keytype='rsa', comment=comment)
         except sh.CommandNotFound:
             pytest.skip('ssh-keygen is not available')
 
-        assert 'RSA PRIVATE KEY' in priv
+        assert 'OPENSSH PRIVATE KEY' in priv
         assert pub.endswith(comment + '\n')
 
     def test_self_signed_cert_gen(self):
@@ -181,7 +177,7 @@ class TestJinjaUtils(TestHelper):
         assert subject.C == country
         assert subject.ST == state_province
         assert subject.L == locality
-        assert subject.O == org
+        assert subject.O == org  # noqa: E741
         assert subject.OU == org_unit
         assert subject.CN == common_name
         assert key.type() == key_type
@@ -230,30 +226,18 @@ class TestStringUtils(TestHelper):
 class TestTypeUtils(TestHelper):
 
     scenarios = [
-        ('none', dict(
-            text=None, expect=False)),
-        ('empty', dict(
-            text='', expect=False)),
-        ('junk', dict(
-            text='unlikely', expect=False)),
-        ('no', dict(
-            text='no', expect=False)),
-        ('yes', dict(
-            text='yes', expect=True)),
-        ('0', dict(
-            text='0', expect=False)),
-        ('1', dict(
-            text='1', expect=False)),
-        ('True', dict(
-            text='True', expect=True)),
-        ('False', dict(
-            text='False', expect=False)),
-        ('true', dict(
-            text='true', expect=True)),
-        ('false', dict(
-            text='false', expect=False)),
-        ('shouty', dict(
-            text='TRUE', expect=True)),
+        ('none', dict(text=None, expect=False)),
+        ('empty', dict(text='', expect=False)),
+        ('junk', dict(text='unlikely', expect=False)),
+        ('no', dict(text='no', expect=False)),
+        ('yes', dict(text='yes', expect=True)),
+        ('0', dict(text='0', expect=False)),
+        ('1', dict(text='1', expect=False)),
+        ('True', dict(text='True', expect=True)),
+        ('False', dict(text='False', expect=False)),
+        ('true', dict(text='true', expect=True)),
+        ('false', dict(text='false', expect=False)),
+        ('shouty', dict(text='TRUE', expect=True)),
     ]
 
     def test_str_to_bool(self):
@@ -273,9 +257,7 @@ class TestYamlUtils(TestHelper):
         assert str1 == str2
 
     def test_write_and_read_file(self):
-        filename = os.path.join(
-            TestHelper.get_test_dir(),
-            self.__class__.__name__ + "_test_write_and_read_file.txt")
+        filename = os.path.join(TestHelper.get_test_dir(), self.__class__.__name__ + "_test_write_and_read_file.txt")
         dict1 = utils.YamlUtils.yaml_dict_from_string(test_conf_self_rendered)
         utils.YamlUtils.yaml_dict_to_file(dict1, filename)
         dict2 = utils.YamlUtils.yaml_dict_from_file(filename)

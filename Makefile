@@ -8,6 +8,8 @@ venv:
 	fi
 
 install:
+	pipenv install
+	pipenv install --dev
 	pip install --editable .
 
 pep8:
@@ -15,7 +17,6 @@ pep8:
 	flake8 ./app ./tests
 
 test:
-	pip -q install -r test-requirements.txt
 	pytest
 	flake8 ./app ./tests
 

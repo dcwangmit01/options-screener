@@ -55,6 +55,8 @@ Pygments = "*"
 pyOpenSSL = "*"
 PyYAML = "*"
 "zope.interface" = "*"
+tdameritrade = "*"
+chromedriver = "*"
 
 [requires]
 python_version = "3.8"

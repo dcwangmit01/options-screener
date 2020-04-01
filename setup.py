@@ -14,10 +14,7 @@ def read_requirements(requirements_path):
     """
 
     with open(requirements_path) as f:
-        return [
-            line.strip() for line in f.read().strip().splitlines()
-            if line.strip()
-        ]
+        return [line.strip() for line in f.read().strip().splitlines() if line.strip()]
 
 
 here = os.path.abspath(os.path.dirname(__file__))
@@ -32,8 +29,7 @@ test_requirements_path = os.path.join(here, 'test-requirements.txt')
 try:
     tests_require = read_requirements(test_requirements_path)
 except IOError:
-    print("IOError reading test requirements from '{}'".format(
-        test_requirements_path))
+    print("IOError reading test requirements from '{}'".format(test_requirements_path))
     raise
 
 # add `pytest-runner` distutils plugin for test;
@@ -54,4 +50,5 @@ setup(
     entry_points='''
         [console_scripts]
         options=app.cli:app
-    ''', )
+    ''',
+)

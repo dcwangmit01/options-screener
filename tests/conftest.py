@@ -38,8 +38,7 @@ class Result(testing.Result):
         self.__exc_info = value
 
     def __repr__(self):
-        return '<Result %s>' % (self.__exception and repr(self.__exception) or
-                                'okay', )
+        return '<Result %s>' % (self.__exception and repr(self.__exception) or 'okay', )
 
     @classmethod
     def from_upstream(cls, r, allow_exception_access):
@@ -68,16 +67,13 @@ def cli(request):
         args = ('--home', './tests/fixtures') + args
         r = runner.invoke(app_cli, args, catch_exceptions=catch_exceptions)
 
-        if isinstance(exit_code, six.string_types) and (
-                exit_code.lower() == 'ignore'):
+        if isinstance(exit_code, six.string_types) and (exit_code.lower() == 'ignore'):
             pass
         else:
             if not r.exit_code == exit_code:
                 print('%r\nOutput was:' % r, file=sys.stderr)
                 sys.stderr.write(r.output)
-                raise AssertionError(
-                    'Wanted exit code %s but got %s (see stderr for more)' %
-                    (exit_code, r.exit_code))
+                raise AssertionError('Wanted exit code %s but got %s (see stderr for more)' % (exit_code, r.exit_code))
 
         return Result.from_upstream(r, allow_exception_access=explicit)
 

@@ -7,8 +7,7 @@ FORMAT = '%(asctime)s %(levelname)s:%(filename)s:%(lineno)d %(message)s'
 logging.basicConfig(format=FORMAT, level=logging.INFO)
 log = logging.getLogger(__name__)
 
-CONTEXT_SETTINGS = dict(
-    auto_envvar_prefix='COMPLEX', help_option_names=['-h', '--help'])
+CONTEXT_SETTINGS = dict(auto_envvar_prefix='COMPLEX', help_option_names=['-h', '--help'])
 
 
 class Context(object):
@@ -29,8 +28,7 @@ class Context(object):
 
 
 pass_context = click.make_pass_decorator(Context, ensure=True)
-cmd_folder = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), 'commands'))
+cmd_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), 'commands'))
 
 
 class AppCLI(click.MultiCommand):
@@ -56,11 +54,9 @@ class AppCLI(click.MultiCommand):
 
 
 @click.command(cls=AppCLI, context_settings=CONTEXT_SETTINGS)
-@click.option(
-    '--home',
-    type=click.Path(
-        exists=True, file_okay=False, resolve_path=True),
-    help='Changes the folder to operate on.')
+@click.option('--home',
+              type=click.Path(exists=True, file_okay=False, resolve_path=True),
+              help='Changes the folder to operate on.')
 @click.option('-v', '--verbose', is_flag=True, help='Enables verbose mode.')
 @pass_context
 def app(ctx, verbose, home):

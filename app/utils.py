@@ -41,8 +41,7 @@ class ExecUtils(object):
         cmd = cmd.strip()  # strip whitespace
         try:
             log.debug("executing cmd[{}]".format(cmd))
-            res = subprocess.check_output(
-                cmd, shell=True, executable='/bin/bash')
+            res = subprocess.check_output(cmd, shell=True, executable='/bin/bash')
             res = res.strip()  # strip whitespace
             log.debug("returned[{}]".format(res))
             return (res, None)
@@ -84,12 +83,9 @@ class JinjaUtils(object):
     def render_jinja(dict_, template_str):
         """Render dict onto jinja template and return the string result"""
         name = 'jvars'
-        j2env = jinja2.Environment(
-            loader=jinja2.DictLoader({
-                name: template_str
-            }),
-            undefined=jinja2.StrictUndefined,
-            extensions=["jinja2.ext.do"])
+        j2env = jinja2.Environment(loader=jinja2.DictLoader({name: template_str}),
+                                   undefined=jinja2.StrictUndefined,
+                                   extensions=["jinja2.ext.do"])
 
         # Add some custom jinja filters
         j2env.filters['bool'] = TypeUtils.str_to_bool
@@ -166,16 +162,15 @@ class JinjaUtils(object):
             priv_path = os.path.join(tmpdir, 'key')
             pub_path = priv_path + '.pub'
 
-            sh.ssh_keygen(
-                t=keytype,
-                b=bits,
-                q=True,
-                C=comment,
-                N=passphrase,
-                f=priv_path,
-                _in=os.devnull,
-                _tty_in=False,
-                _tty_out=False)
+            sh.ssh_keygen(t=keytype,
+                          b=bits,
+                          q=True,
+                          C=comment,
+                          N=passphrase,
+                          f=priv_path,
+                          _in=os.devnull,
+                          _tty_in=False,
+                          _tty_out=False)
             with open(priv_path, 'r') as priv, open(pub_path, 'r') as pub:
                 return priv.read(), pub.read()
 
@@ -184,17 +179,17 @@ class JinjaUtils(object):
 
     @staticmethod
     def self_signed_cert_gen(
-            key_type=crypto.TYPE_RSA,
-            key_bits=4096,
-            country="US",
-            state_province="California",
-            locality="San Francisco",
-            org="Your Company",
-            org_unit="Team",
-            common_name="www.domain.com",
-            subject_alt_names=[],  # alternative dns names as list
-            # ^ must look like: ["DNS:*.domain.com", "DNS:domain.ym"]
-            validity_days=10 * 365):
+        key_type=crypto.TYPE_RSA,
+        key_bits=4096,
+        country="US",
+        state_province="California",
+        locality="San Francisco",
+        org="Your Company",
+        org_unit="Team",
+        common_name="www.domain.com",
+        subject_alt_names=[],  # alternative dns names as list
+        # ^ must look like: ["DNS:*.domain.com", "DNS:domain.ym"]
+        validity_days=10 * 365):  # noqa: E129
 
         # Create a key pair
         k = crypto.PKey()
@@ -205,15 +200,12 @@ class JinjaUtils(object):
         cert.get_subject().C = country
         cert.get_subject().ST = state_province
         cert.get_subject().L = locality
-        cert.get_subject().O = org
+        cert.get_subject().O = org  # noqa: E741
         cert.get_subject().OU = org_unit
         cert.get_subject().CN = common_name
         if subject_alt_names:
             subject_alt_names = ", ".join(subject_alt_names).encode("utf-8")
-            cert.add_extensions([
-                crypto.X509Extension("subjectAltName".encode("utf-8"), False,
-                                     subject_alt_names)
-            ])
+            cert.add_extensions([crypto.X509Extension("subjectAltName".encode("utf-8"), False, subject_alt_names)])
         cert.set_serial_number(random.getrandbits(64))
         cert.gmtime_adj_notBefore(0)
         cert.gmtime_adj_notAfter(validity_days * 24 * 60 * 60)
@@ -222,8 +214,7 @@ class JinjaUtils(object):
         cert.sign(k, 'sha1')
 
         # return a tuple of the private key and the self-signed cert
-        return (crypto.dump_privatekey(crypto.FILETYPE_PEM, k),
-                crypto.dump_certificate(crypto.FILETYPE_PEM, cert))
+        return (crypto.dump_privatekey(crypto.FILETYPE_PEM, k), crypto.dump_certificate(crypto.FILETYPE_PEM, cert))
 
     @staticmethod
     def ceph_key():
@@ -281,12 +272,7 @@ class YamlUtils(object):
         """
         # Use width=1000000 to prevent wrapping
         # Use double-quote style to prevent escaping of ' to ''
-        return yaml.dump(
-            dict_,
-            Dumper=IgnoreAliasesDumper,
-            default_flow_style=False,
-            width=1000000,
-            default_style='"')
+        return yaml.dump(dict_, Dumper=IgnoreAliasesDumper, default_flow_style=False, width=1000000, default_style='"')
 
     @staticmethod
     def yaml_dict_from_string(string_):

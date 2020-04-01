@@ -68,10 +68,7 @@ def run(ctx, config_yaml, output_csv):
     c = app.get_config_dict(ctx, [config_yaml])
 
     # use cache to reduce web traffic
-    session = requests_cache.CachedSession(
-        cache_name='cache',
-        backend='sqlite',
-        expire_after=seconds_to_cache)
+    session = requests_cache.CachedSession(cache_name='cache', backend='sqlite', expire_after=seconds_to_cache)
 
     # all data will also be combined into one CSV
     all_df = None
@@ -106,14 +103,14 @@ def long_puts_csv_out(filename, df):
     # greater than 2 weeks from expiration
     # volume greater than 1
     # open interest greater than 10
-    filtered = df.loc[(df['Type'] == 'put') & (df['xExpired'] is not True) & (
-        df['Strike'] < df['Underlying_Price']) & (df[
-            'xDaysUntilExpiration'] >= 14) & (df['Vol'] > 1) & (df[
-                'Open_Int'] > 10) & (df['xDaysUntilExpiration'] > 30)]
+    filtered = df.loc[(df['Type'] == 'put') & (df['xExpired'] is not True) & (df['Strike'] < df['Underlying_Price']) &
+                      (df['xDaysUntilExpiration'] >= 14) & (df['Vol'] > 1) & (df['Open_Int'] > 10) &
+                      (df['xDaysUntilExpiration'] > 30)]
 
-    ret = filtered.sort_values(
-        by=sort_cols, ascending=True).to_csv(
-            filename, columns=csv_cols, index=False, float_format='%.2f')
+    ret = filtered.sort_values(by=sort_cols, ascending=True).to_csv(filename,
+                                                                    columns=csv_cols,
+                                                                    index=False,
+                                                                    float_format='%.2f')
     return ret
 
 
@@ -125,26 +122,19 @@ def long_puts_process_dataframe(df):
 
     # calculate other values
     #  The ask price is a conservative estimate of the current option price
-    df['xDaysUntilExpiration'] = df.apply(
-        lambda row: (row['Expiry'].to_pydatetime() - today).days, axis=1)
-    df['xExpired'] = df.apply(
-        lambda row: row['xDaysUntilExpiration'] <= 0, axis=1)
+    df['xDaysUntilExpiration'] = df.apply(lambda row: (row['Expiry'].to_pydatetime() - today).days, axis=1)
+    df['xExpired'] = df.apply(lambda row: row['xDaysUntilExpiration'] <= 0, axis=1)
     df['xDividend'] = df.apply(  # placeholder for dividend
         lambda row: 0, axis=1)
-    df['xPremium'] = df.apply(
-        lambda row: row['Ask'] if row['Ask'] > 0 else row['Last'], axis=1)
-    df['xBreakEvenPrice'] = df.apply(
-        lambda row: row['Strike'] - row['Ask'], axis=1)
-    df['xBreakEvenDrop'] = df.apply(
-        lambda row: 0 + row['Underlying_Price'] - row['xBreakEvenPrice'], axis=1)
-    df['xBreakEvenDrop%'] = df.apply(
-        lambda row: 100.0 * row['xBreakEvenDrop'] / row['Underlying_Price'],
-        axis=1)
+    df['xPremium'] = df.apply(lambda row: row['Ask'] if row['Ask'] > 0 else row['Last'], axis=1)
+    df['xBreakEvenPrice'] = df.apply(lambda row: row['Strike'] - row['Ask'], axis=1)
+    df['xBreakEvenDrop'] = df.apply(lambda row: 0 + row['Underlying_Price'] - row['xBreakEvenPrice'], axis=1)
+    df['xBreakEvenDrop%'] = df.apply(lambda row: 100.0 * row['xBreakEvenDrop'] / row['Underlying_Price'], axis=1)
     df['xBreakEvenDrop%PerDayUntilExpiration'] = df.apply(
         lambda row: 0 if row['xDaysUntilExpiration'] == 0 else row['xBreakEvenDrop%'] / row['xDaysUntilExpiration'],
         axis=1)
-    df['xBankrupcyReturn%'] = df.apply(
-        lambda row: 0 if row['xPremium'] == 0 else 100.0 * (row['Strike'] - row['xPremium']) / row['xPremium'],
-        axis=1)
+    df['xBankrupcyReturn%'] = df.apply(lambda row: 0 if row['xPremium'] == 0 else 100.0 *
+                                       (row['Strike'] - row['xPremium']) / row['xPremium'],
+                                       axis=1)
 
     return df
