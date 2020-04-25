@@ -1,41 +1,45 @@
 PYTHON ?= python
 
 DATE:=$(shell date "+%Y%m%d")
+APP:=options-screener
 
-venv:
-	if [ ! -d .venv ] ; then \
-	  virtualenv -p python3 .venv; \
-	fi
-
+install:  ## Install an editable version of this app
 install:
-	pipenv install
-	pipenv install --dev
-	pip install --editable .
+	pipenv run pip install --editable .
 
-pep8:
-	yapf -i $$(find * -type f -name '*.py')
-	flake8 ./app ./tests
+uninstall:  ## Uninstall this app
+	pipenv run pip uninstall -y $(APP)
 
-test:
-	pytest
-	flake8 ./app ./tests
+format:  ## Auto-format and check pep8
+	pipenv run yapf -i $$(find * -type f -name '*.py')
+	pipenv run flake8 ./app ./tests
 
-test_fixtures:
-	mkdir -p tests/fixtures
-	echo date > ./tests/fixtures/fixtures_last_updated.txt
+test:  ## Run tests
+	pipenv run pytest
+	pipenv run flake8 ./app ./tests
 
+dist:  ## Create a binary dist
 dist: clean
 	(cd $(BASE) && $(PYTHON) setup.py sdist)
 
-run:
-	options coveredcalls run config.yaml $(DATE)_coveredcalls.csv
-	options longputs run config.yaml $(DATE)_longputs.csv
-	options longcalls run config.yaml $(DATE)_longcalls.csv
+.PHONY: tags
+tags:  ## Create tags for code navigation
+	rm -f TAGS
+	etags -a $$(find * -type f -name '*.py')
 
+run:
+	$(APP) coveredcalls run config.yaml $(DATE)_coveredcalls.csv
+	$(APP) longputs run config.yaml $(DATE)_longputs.csv
+	$(APP) longcalls run config.yaml $(DATE)_longcalls.csv
+
+clean:  ## Clean all temporary files
 clean:
+	pipenv --rm || true
 	find * -type f -name *.pyc | xargs rm -f
-	find * -type f -name *~ |xargs rm -f
-	find * -type d -name __pycache__ |xargs rm -rf
+	find * -type f -name *~ | xargs rm -f
+	find * -type d -name __pycache__ | xargs rm -rf
 	rm -rf *.egg-info
 	rm -rf dist/
 	rm -f *.csv
+
+include scripts/help.mk  # Must be included last.

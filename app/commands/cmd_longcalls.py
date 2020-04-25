@@ -2,12 +2,9 @@ from pandas_datareader.data import Options
 import requests_cache
 import datetime
 import click
-import logging
 
 from app import app
 from app import cli as app_cli
-
-log = logging.getLogger(__name__)
 
 app = app.App()
 today = datetime.datetime.today()

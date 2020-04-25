@@ -1,54 +1,49 @@
-import os
-import sys
-from setuptools import setup
+import pathlib
+import subprocess
 
-# determine setup requirements:
-#  - install_requires
-#  - tests_require
-#  - setup_requires  # for pytest-runner
+from setuptools import setup, find_packages
+from setuptools.command.install import install
+from setuptools.command.develop import develop
 
+__requires__ = ['pipenv']
 
-def read_requirements(requirements_path):
-    """
-    read requirements from a requirements.txt file
-    """
+packages = find_packages(exclude=['tests'])
+base_dir = pathlib.Path(__file__).parent
 
-    with open(requirements_path) as f:
-        return [line.strip() for line in f.read().strip().splitlines() if line.strip()]
+pipenv_command = ['pipenv', 'install']
+pipenv_command_dev = ['pipenv', 'install', '--dev']
 
 
-here = os.path.abspath(os.path.dirname(__file__))
-requirements_path = os.path.join(here, 'requirements.txt')
-try:
-    required_packages = read_requirements(requirements_path)
-except IOError:
-    print("IOError reading requirements from '{}'".format(requirements_path))
-    raise
+class PostDevelopCommand(develop):
+    """Post-installation for development mode."""
+    def run(self):
+        subprocess.check_call(pipenv_command_dev)
+        develop.run(self)
 
-test_requirements_path = os.path.join(here, 'test-requirements.txt')
-try:
-    tests_require = read_requirements(test_requirements_path)
-except IOError:
-    print("IOError reading test requirements from '{}'".format(test_requirements_path))
-    raise
 
-# add `pytest-runner` distutils plugin for test;
-# see https://pypi.python.org/pypi/pytest-runner
-setup_requires = []
-if {'pytest', 'test', 'ptr'}.intersection(sys.argv[1:]):
-    setup_requires.append('pytest-runner')
+class PostInstallCommand(install):
+    """Post-installation for installation mode."""
+    def run(self):
+        subprocess.check_call(pipenv_command)
+        install.run(self)
 
-# invoke `setup` function
+
+with open(base_dir / 'README.md', encoding='utf-8') as f:
+    long_description = f.read()
+
 setup(
-    name='options',
-    version='0.1.0',
-    packages=['app', 'app.commands'],
+    name='options-screener',
     include_package_data=True,
-    install_requires=required_packages,
-    setup_requires=setup_requires,
-    zip_safe=False,
+    use_scm_version=True,
+    long_description='\n' + long_description,
+    packages=packages,
+    setup_requires=['setuptools_scm'],
+    cmdclass={
+        'develop': PostDevelopCommand,
+        'install': PostInstallCommand,
+    },
     entry_points='''
         [console_scripts]
-        options=app.cli:app
+        options-screener=app.cli:app
     ''',
 )

@@ -1,9 +1,12 @@
 import base64
 import copy
+import datetime
 import errno
+import inspect
 import jinja2
 import json
 import logging
+import pythonjsonlogger.jsonlogger as jsonlogger
 import os
 import random
 import re
@@ -11,6 +14,8 @@ import sh
 import shutil
 import string
 import struct
+import structlog
+from structlog._frames import _find_first_app_frame_and_name
 import subprocess
 import tempfile
 import time
@@ -339,3 +344,92 @@ class KubeUtils(object):
             context = cluster['name']
             if context == current_context:
                 return server
+
+
+class LogUtils(object):
+    """
+      from app.utils import LogUtils
+      log = LogUtils.get_logger()
+      log.info("hi", a='b')
+
+      LEVELS:
+        critical
+        error
+        warning
+        info
+        debug
+        notset
+    """
+    class CustomJsonFormatter(jsonlogger.JsonFormatter):
+        def add_fields(self, log_record, record, message_dict):
+            super(LogUtils.CustomJsonFormatter, self).add_fields(log_record, record, message_dict)
+            if not log_record.get('timestamp'):
+                now = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+                log_record['timestamp'] = now
+            log_record['level'] = record.levelname
+            keep_keys = ["timestamp", "level", "loc", "message"]
+            params = {}
+            param_keys = [key for key in log_record if (key not in keep_keys)]
+            for key in sorted(param_keys):
+                params[key] = log_record[key]
+                del log_record[key]
+            if (params):
+                log_record.update(params)
+
+    @staticmethod
+    def __add_code_location_processor(logger, _, event_dict):
+        # Mostly copy/pasta from:
+        #   https://stackoverflow.com/questions/54872447/how-to-add-code-line-number-using-structlog
+        # If by any chance the record already contains a `modline` key,
+        # (very rare) move that into a 'modline_original' key
+        if 'modline' in event_dict:
+            event_dict['modline_original'] = event_dict['modline']
+        f, name = _find_first_app_frame_and_name(additional_ignores=[
+            "logging",
+            __name__,
+        ])
+        if not f:
+            return event_dict
+        frameinfo = inspect.getframeinfo(f)
+        if not frameinfo:
+            return event_dict
+        module = inspect.getmodule(f)
+        if not module:
+            return event_dict
+        if frameinfo and module:
+            event_dict['loc'] = '{}:{}'.format(
+                os.path.basename(frameinfo.filename),
+                # module.__name__,  ## If you want to add a module name, uncomment this and modify the format above
+                frameinfo.lineno,
+            )
+        return event_dict
+
+    @staticmethod
+    def get_logger(log_level="DEBUG"):
+        structlog.configure(
+            processors=[
+                structlog.stdlib.filter_by_level,
+                # structlog.stdlib.add_logger_name,
+                structlog.stdlib.add_log_level,
+                structlog.stdlib.PositionalArgumentsFormatter(),
+                structlog.processors.StackInfoRenderer(),
+                structlog.processors.format_exc_info,
+                structlog.processors.UnicodeDecoder(),
+                LogUtils.__add_code_location_processor,
+                structlog.stdlib.render_to_log_kwargs,
+            ],
+            context_class=dict,
+            logger_factory=structlog.stdlib.LoggerFactory(),
+            wrapper_class=structlog.stdlib.BoundLogger,
+            cache_logger_on_first_use=True,
+        )
+
+        json_formatter = LogUtils.CustomJsonFormatter('(timestamp) (level) (loc) (message)')
+
+        console_handler = logging.StreamHandler()
+        console_handler.setFormatter(json_formatter)
+        console_handler.setLevel(log_level.upper())
+
+        logger = structlog.get_logger()
+        logger.addHandler(console_handler)
+        return logger

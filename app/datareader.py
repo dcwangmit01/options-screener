@@ -81,7 +81,7 @@ class Datareader(object):
         return df
 
     def schwab_options_dataframe(self, ticker):
-        schwab = SchwabBrowser.Singleton()
+        schwab = SchwabBrowser.singleton()
         schwab.start()
         schwab.login()
         url = ('https://client.schwab.com/trade/options/optionChainsJson.ashx' '?autopage=true&symbol=' + ticker)
@@ -134,7 +134,7 @@ class SchwabBrowser(object):
     _Singleton = None
 
     @staticmethod
-    def Singleton():
+    def singleton():
         if SchwabBrowser._Singleton is None:
             SchwabBrowser._Singleton = SchwabBrowser()
         return SchwabBrowser._Singleton

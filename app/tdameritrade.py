@@ -20,10 +20,10 @@ class TDAmeritrade(object):
     def __init__(self):
         # Create the requests cache to reduce web traffic
         self.session = requests_cache.CachedSession(cache_name='cache', backend='sqlite', expire_after=SECONDS_TO_CACHE)
-        self.initConfig()
-        self.saveConfig()
+        self.init_config()
+        self.save_config()
 
-    def initConfig(self):
+    def init_config(self):
         # Read the configuration, or create a new configuration
         if path.exists(CONFIG_FILE):
             self.config = YamlUtils.yaml_dict_from_file(CONFIG_FILE)
@@ -59,14 +59,14 @@ class TDAmeritrade(object):
             self.config['redirect_uri'] = input('Please enter your developer.tdameritrade Application Redirect URI\n' +
                                                 '  From https://developer.tdameritrade.com/user/me/apps:\n: ')
 
-    def saveConfig(self):
+    def save_config(self):
         # Write the configuration back to file
         if YamlUtils.yaml_dict_to_string(self.config) != YamlUtils.yaml_dict_to_string(
                 YamlUtils.yaml_dict_from_file(CONFIG_FILE)):
             print(f"Updating configuration file at {CONFIG_FILE}")
             YamlUtils.yaml_dict_to_file(self.config, CONFIG_FILE)
 
-    def ensureAuth(self):
+    def ensure_auth(self):
         # Handle Authentication/Authorization
         now = int(time.time())
         if (self.config['_oauth2']['access_token_timestamp'] == ''):
@@ -100,7 +100,7 @@ class TDAmeritrade(object):
 
         self.saveConfig()
 
-    def getClient(self):
+    def get_client(self):
         self.ensureAuth()
 
         # Return the client
